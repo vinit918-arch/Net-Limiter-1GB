@@ -14,9 +14,10 @@ jobs:
     - name: Unzip Project
       run: |
         unzip netlimit-vpn.zip -d extracted_project
-        INSIDE_DIR=$(find extracted_project -maxdepth 2 -name "gradlew" -exec dirname {} \;)
+        # Zip ke andar check kar rahe hain files kahan hain
+        INSIDE_DIR=$(find extracted_project -maxdepth 2 -name "build.gradle*" -exec dirname {} \;)
         if [ -n "$INSIDE_DIR" ]; then
-          mv $INSIDE_DIR/* .
+          mv $INSIDE_DIR/* . 2>/dev/null || true
           mv $INSIDE_DIR/.[!.]* . 2>/dev/null || true
         else
           mv extracted_project/* . 2>/dev/null || true
@@ -28,17 +29,21 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Grant Execute Permission for Gradle
-      run: chmod +x gradlew
+    - name: Auto Generate Gradle Wrapper if Missing
+      run: |
+        if [ ! -f gradlew ]; then
+          echo "Gradlew missing! Generating a new one..."
+          gradle wrapper --gradle-version 8.2
+        fi
+        chmod +x gradlew
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload Output APK
       uses: actions/upload-artifact@v4
       with:
         name: NetLimiter-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: "**/build/outputs/apk/debug/*-debug.apk"
 
