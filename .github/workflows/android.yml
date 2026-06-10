@@ -11,18 +11,24 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    - name: Unzip Project
+    - name: Clean and Setup Project Structure
       run: |
-        unzip netlimit-vpn.zip -d extracted_project
-        # Zip ke andar check kar rahe hain files kahan hain
-        INSIDE_DIR=$(find extracted_project -maxdepth 2 -name "build.gradle*" -exec dirname {} \;)
-        if [ -n "$INSIDE_DIR" ]; then
-          mv $INSIDE_DIR/* . 2>/dev/null || true
-          mv $INSIDE_DIR/.[!.]* . 2>/dev/null || true
-        else
-          mv extracted_project/* . 2>/dev/null || true
+        # Agar netlimit-vpn.zip maujood hai, toh use sahi tarike se extract karenge
+        if [ -f netlimit-vpn.zip ]; then
+          unzip -o netlimit-vpn.zip -d extracted_project
+          
+          # Check karenge ki kya project kisi andar ke folder mein hai
+          INSIDE_DIR=$(find extracted_project -maxdepth 2 -name "settings.gradle*" -exec dirname {} \;)
+          
+          if [ -n "$INSIDE_DIR" ]; then
+            echo "Project found inside: $INSIDE_DIR"
+            cp -r $INSIDE_DIR/* . 2>/dev/null || true
+            cp -r $INSIDE_DIR/.[!.]* . 2>/dev/null || true
+          else
+            cp -r extracted_project/* . 2>/dev/null || true
+          fi
+          rm -rf extracted_project
         fi
-        rm -rf extracted_project netlimit-vpn.zip
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -30,20 +36,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Auto Generate Gradle Wrapper if Missing
+    - name: Force Generate Proper Gradle Wrapper
       run: |
-        if [ ! -f gradlew ]; then
-          echo "Gradlew missing! Generating a new one..."
-          gradle wrapper --gradle-version 8.2
-        fi
+        # Ek fresh aur correct gradle wrapper generate kar rahe hain jo Version Catalog ko support kare
+        gradle wrapper --gradle-version 8.4
         chmod +x gradlew
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --no-daemon
 
     - name: Upload Output APK
       uses: actions/upload-artifact@v4
       with:
         name: NetLimiter-APK
         path: "**/build/outputs/apk/debug/*-debug.apk"
-
+        
