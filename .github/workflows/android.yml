@@ -13,13 +13,9 @@ jobs:
 
     - name: Clean and Setup Project Structure
       run: |
-        # Agar netlimit-vpn.zip maujood hai, toh use sahi tarike se extract karenge
         if [ -f netlimit-vpn.zip ]; then
           unzip -o netlimit-vpn.zip -d extracted_project
-          
-          # Check karenge ki kya project kisi andar ke folder mein hai
           INSIDE_DIR=$(find extracted_project -maxdepth 2 -name "settings.gradle*" -exec dirname {} \;)
-          
           if [ -n "$INSIDE_DIR" ]; then
             echo "Project found inside: $INSIDE_DIR"
             cp -r $INSIDE_DIR/* . 2>/dev/null || true
@@ -38,8 +34,8 @@ jobs:
 
     - name: Force Generate Proper Gradle Wrapper
       run: |
-        # Ek fresh aur correct gradle wrapper generate kar rahe hain jo Version Catalog ko support kare
-        gradle wrapper --gradle-version 8.4
+        # Yahan humne aapke project ke mutabik version 9.3.1 kar diya hai
+        gradle wrapper --gradle-version 9.3.1
         chmod +x gradlew
 
     - name: Build Debug APK
@@ -50,4 +46,4 @@ jobs:
       with:
         name: NetLimiter-APK
         path: "**/build/outputs/apk/debug/*-debug.apk"
-        
+
