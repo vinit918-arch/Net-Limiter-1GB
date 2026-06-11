@@ -34,9 +34,17 @@ jobs:
 
     - name: Force Generate Proper Gradle Wrapper
       run: |
-        # Yahan humne aapke project ke mutabik version 9.3.1 kar diya hai
         gradle wrapper --gradle-version 9.3.1
         chmod +x gradlew
+
+    - name: Fix Missing Debug Keystore
+      run: |
+        # Ek default android debug keystore generate kar rahe hain taaki signing config fail na ho
+        mkdir -p ~/.android
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        cp debug.keystore ~/.android/
+        # Agar project ke andar kisi specific folder me khoj raha ho toh wahan bhi copy kar dete hain
+        cp debug.keystore app/ || true
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
@@ -46,4 +54,3 @@ jobs:
       with:
         name: NetLimiter-APK
         path: "**/build/outputs/apk/debug/*-debug.apk"
-
