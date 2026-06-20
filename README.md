@@ -22,7 +22,7 @@ Instead of deleting the project and wiping out the history, I decided to keep th
 ## 💻 Tech Stack & Tools
 * **Platform:** Android
 * **Version Control:** Git & GitHub
-* **Developer Age:** 18
+* **Developer Age:** 17
 
 ## 📬 Connect with Me
 * **GitHub:** [@vinit918-arch](https://github.com/vinit918-arch)
